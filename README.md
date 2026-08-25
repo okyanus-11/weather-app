@@ -1,12 +1,17 @@
-# Weather App
+# Weather Now
 
-A lightweight Python command-line app that fetches live current weather from [OpenWeatherMap](https://openweathermap.org/api).
+A polished Python desktop weather app that fetches live current conditions from [OpenWeatherMap](https://openweathermap.org/api).
 
-## What it does
+## Features
 
-1. Securely prompts for an OpenWeatherMap API key (the key is hidden and never saved).
-2. Prompts for a city name, or accepts one as a command-line argument.
-3. Shows current conditions, temperature, feels-like temperature, humidity, wind, and the observation time.
+- Desktop GUI built with Python's built-in Tkinter
+- Secure API-key field: the key is hidden and never saved
+- City search with metric (°C) and imperial (°F) units
+- Visual forecast emoji and a clear condition label, such as **Sunny**, **Cloudy**, **Rainy**, **Snowy**, or **Misty**
+- Temperature and feels-like temperature
+- Humidity, wind, pressure, visibility, sunrise, sunset, and last-updated time
+- Friendly messages for invalid keys, unknown cities, timeouts, and network errors
+- GitHub Actions test workflow
 
 ## Install
 
@@ -16,19 +21,17 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Run
+## Launch
 
 ```bash
 python weather_app.py
-python weather_app.py Istanbul
-python weather_app.py "New York" --units imperial
 ```
 
-Use `metric` (Celsius) by default or pass `--units imperial` for Fahrenheit.
+Enter your OpenWeatherMap API key and a city, then select **Get weather**.
 
-## Get an API key
+## API key
 
-Create a free API key in your [OpenWeatherMap account](https://home.openweathermap.org/api_keys). The app requests the key every time it runs and does not store it.
+Create a free API key in your [OpenWeatherMap account](https://home.openweathermap.org/api_keys). The app does not save your key.
 
 ## Test
 
@@ -39,7 +42,7 @@ pytest
 
 ## Security
 
-Never commit an API key. If a key has been exposed, revoke it in OpenWeatherMap and issue a replacement.
+Never commit an API key. If a key has ever been exposed, revoke it in OpenWeatherMap and create a replacement.
 
 ## License
 

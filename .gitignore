@@ -1,5 +1,5 @@
-__pycache__/
-*.py[cod]
-.venv/
-.pytest_cache/
 .env
+.venv/
+__pycache__/
+.pytest_cache/
+

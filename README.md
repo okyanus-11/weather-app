@@ -1,49 +1,22 @@
-# Weather Now
+# Weather App
 
-A polished Python desktop weather app that fetches live current conditions from [OpenWeatherMap](https://openweathermap.org/api).
+A command-line app that gets live current weather from OpenWeatherMap.
 
-## Features
+## Setup
 
-- Desktop GUI built with Python's built-in Tkinter
-- Secure API-key field: the key is hidden and never saved
-- City search with metric (°C) and imperial (°F) units
-- Visual forecast emoji and a clear condition label, such as **Sunny**, **Cloudy**, **Rainy**, **Snowy**, or **Misty**
-- Temperature and feels-like temperature
-- Humidity, wind, pressure, visibility, sunrise, sunset, and last-updated time
-- Friendly messages for invalid keys, unknown cities, timeouts, and network errors
-- GitHub Actions test workflow
-
-## Install
-
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+Copy-Item .env.example .env
 ```
 
-## Launch
+Add your key to `.env`, then run:
 
-```bash
-python weather_app.py
+```powershell
+python weather_app.py Istanbul
+python weather_app.py "New York" --units imperial
 ```
 
-Enter your OpenWeatherMap API key and a city, then select **Get weather**.
+Run `python weather_app.py` without a city to enter it interactively.
 
-## API key
-
-Create a free API key in your [OpenWeatherMap account](https://home.openweathermap.org/api_keys). The app does not save your key.
-
-## Test
-
-```bash
-pip install pytest
-pytest
-```
-
-## Security
-
-Never commit an API key. If a key has ever been exposed, revoke it in OpenWeatherMap and create a replacement.
-
-## License
-
-MIT. See [LICENSE](LICENSE).

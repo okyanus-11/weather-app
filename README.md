@@ -1,4 +1,4 @@
-# Weather App
+## Weather App
 
 A command-line app that gets live current weather from OpenWeatherMap.
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 import os
 import sys
 from dataclasses import dataclass
@@ -41,20 +42,77 @@ def fetch_weather(city: str, api_key: str, units: str = "metric") -> Weather:
             timeout=10,
         )
         response.raise_for_status()
-        data: dict[str, Any] = response.json()
+        data: Any = response.json()
     except requests.Timeout as error:
         raise WeatherError("The weather service took too long to respond. Please try again.") from error
     except requests.RequestException as error:
         raise WeatherError(_error_message(error)) from error
     except (KeyError, TypeError, ValueError) as error:
-        raise WeatherError("OpenWeatherMap returned an unexpected response. Please try again.") from error
+        raise _unexpected_response() from error
+
+    return _parse_weather(data)
+
+
+def _unexpected_response() -> WeatherError:
+    return WeatherError("OpenWeatherMap returned an unexpected response. Please try again.")
+
+
+def _is_number(value: Any) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
+def _parse_weather(data: Any) -> Weather:
+    if not isinstance(data, dict):
+        raise _unexpected_response()
+
+    system = data.get("sys")
+    conditions = data.get("weather")
+    main = data.get("main")
+    wind = data.get("wind")
+    if (
+        not isinstance(data.get("name"), str)
+        or not isinstance(system, dict)
+        or not isinstance(system.get("country"), str)
+        or not isinstance(conditions, list)
+        or not conditions
+        or not isinstance(conditions[0], dict)
+        or not isinstance(conditions[0].get("description"), str)
+        or not isinstance(main, dict)
+        or not isinstance(wind, dict)
+    ):
+        raise _unexpected_response()
+
+    temperature = main.get("temp")
+    feels_like = main.get("feels_like")
+    humidity = main.get("humidity")
+    wind_speed = wind.get("speed")
+    timestamp = data.get("dt")
+    if (
+        not all(_is_number(value) for value in (temperature, feels_like, wind_speed, timestamp))
+        or isinstance(humidity, bool)
+        or not isinstance(humidity, int)
+    ):
+        raise _unexpected_response()
+
+    try:
+        observed_at = datetime.fromtimestamp(timestamp)
+    except (OverflowError, OSError, ValueError) as error:
+        raise _unexpected_response() from error
 
     return Weather(
-        city=data["name"], country=data["sys"]["country"],
-        description=data["weather"][0]["description"].capitalize(),
-        temperature=data["main"]["temp"], feels_like=data["main"]["feels_like"],
-        humidity=data["main"]["humidity"], wind_speed=data["wind"]["speed"],
-        observed_at=datetime.fromtimestamp(data["dt"]),
+        city=data["name"],
+        country=system["country"],
+        description=conditions[0]["description"].capitalize(),
+        temperature=temperature,
+        feels_like=feels_like,
+        humidity=humidity,
+        wind_speed=wind_speed,
+        observed_at=observed_at,
     )
 
 
@@ -110,4 +168,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

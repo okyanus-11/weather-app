@@ -42,20 +42,21 @@ def fetch_weather(city: str, api_key: str, units: str = "metric") -> Weather:
         )
         response.raise_for_status()
         data: dict[str, Any] = response.json()
+        return Weather(
+            city=data["name"], country=data["sys"]["country"],
+            description=data["weather"][0]["description"].capitalize(),
+            temperature=float(data["main"]["temp"]),
+            feels_like=float(data["main"]["feels_like"]),
+            humidity=int(data["main"]["humidity"]),
+            wind_speed=float(data["wind"]["speed"]),
+            observed_at=datetime.fromtimestamp(data["dt"]),
+        )
     except requests.Timeout as error:
         raise WeatherError("The weather service took too long to respond. Please try again.") from error
     except requests.RequestException as error:
         raise WeatherError(_error_message(error)) from error
-    except (KeyError, TypeError, ValueError) as error:
+    except (KeyError, IndexError, TypeError, ValueError) as error:
         raise WeatherError("OpenWeatherMap returned an unexpected response. Please try again.") from error
-
-    return Weather(
-        city=data["name"], country=data["sys"]["country"],
-        description=data["weather"][0]["description"].capitalize(),
-        temperature=data["main"]["temp"], feels_like=data["main"]["feels_like"],
-        humidity=data["main"]["humidity"], wind_speed=data["wind"]["speed"],
-        observed_at=datetime.fromtimestamp(data["dt"]),
-    )
 
 
 def _error_message(error: requests.RequestException) -> str:

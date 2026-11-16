@@ -53,6 +53,8 @@ def fetch_weather(city: str, api_key: str, units: str = "metric") -> Weather:
         )
     except requests.Timeout as error:
         raise WeatherError("The weather service took too long to respond. Please try again.") from error
+    except requests.exceptions.JSONDecodeError as error:
+        raise WeatherError("OpenWeatherMap returned invalid JSON. Please try again.") from error
     except requests.RequestException as error:
         raise WeatherError(_error_message(error)) from error
     except (KeyError, IndexError, TypeError, ValueError) as error:

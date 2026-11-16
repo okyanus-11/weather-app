@@ -20,3 +20,6 @@ python weather_app.py "New York" --units imperial
 
 Run `python weather_app.py` without a city to enter it interactively.
 
+## Installation
+
+For prerequisites, environment setup, configuration, and run/build commands, see the [installation guide](INSTALLATION.md).

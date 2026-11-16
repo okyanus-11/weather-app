@@ -7,8 +7,7 @@ from weather_app import (
     Weather,
     WeatherError,
     fetch_weather,
-    format_weather,
-    weather_emoji,
+    format_weather
 )
 
 
@@ -29,16 +28,23 @@ def test_format_weather_metric() -> None:
     assert "3.2 m/s" in output
 
 
-def test_clear_day_uses_sun() -> None:
-    assert weather_emoji(800, "01d") == "☀️"
-
-
-def test_rain_uses_rain_emoji() -> None:
-    assert weather_emoji(501, "10d") == "🌧️"
-
-
-def test_clouds_use_cloud_emoji() -> None:
-    assert weather_emoji(803, "04d") == "☁️"
+def test_fetch_weather_parses_valid_response() -> None:
+    response = Mock()
+    response.json.return_value = {
+        "name": "Istanbul",
+        "sys": {"country": "TR"},
+        "weather": [{"description": "clear sky"}],
+        "main": {"temp": 22, "feels_like": 23, "humidity": 48},
+        "wind": {"speed": 3.5},
+        "dt": 1798209000,
+    }
+    with patch("weather_app.requests.get", return_value=response):
+        weather = fetch_weather("Istanbul", "test-key")
+    assert weather.city == "Istanbul"
+    assert weather.country == "TR"
+    assert weather.description == "Clear sky"
+    assert weather.temperature == 22.0
+    assert weather.humidity == 48
 
 
 def test_malformed_api_payload_raises_weather_error() -> None:

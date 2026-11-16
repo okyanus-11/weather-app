@@ -22,4 +22,4 @@ Run `python weather_app.py` without a city to enter it interactively.
 
 ## Installation
 
-For prerequisites, environment setup, configuration, and run/build commands, see the [installation guide](INSTALLATION.md).
+Requires Python 3.10+ and an OpenWeatherMap API key. Clone the repository, create a virtual environment, install `requirements.txt`, copy `.env.example` to `.env`, and add `WEATHER_API_KEY`. Start it with `python weather_app.py Istanbul` (or omit the city for interactive input). See the [full installation guide](INSTALLATION.md) for Windows and Linux/macOS steps.

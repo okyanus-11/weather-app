@@ -7,7 +7,7 @@ from weather_app import (
     Weather,
     WeatherError,
     fetch_weather,
-    format_weather
+    format_weather,
 )
 
 

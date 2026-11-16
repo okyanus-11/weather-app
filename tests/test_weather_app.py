@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pytest
+import requests
 
 from weather_app import (
     Weather,
@@ -69,4 +70,13 @@ def test_incomplete_or_invalid_numeric_payload_raises_weather_error(payload) -> 
     response.json.return_value = payload
     with patch("weather_app.requests.get", return_value=response):
         with pytest.raises(WeatherError, match="unexpected response"):
+            fetch_weather("Istanbul", "test-key")
+
+def test_invalid_json_response_has_clear_weather_error() -> None:
+    response = Mock()
+    response.json.side_effect = requests.exceptions.JSONDecodeError(
+        "invalid JSON", "{not-json", 0
+    )
+    with patch("weather_app.requests.get", return_value=response):
+        with pytest.raises(WeatherError, match="invalid JSON"):
             fetch_weather("Istanbul", "test-key")

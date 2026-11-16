@@ -1,6 +1,9 @@
 from datetime import datetime
+from unittest.mock import Mock, patch
 
-from weather_app import Weather, format_weather
+import pytest
+
+from weather_app import Weather, WeatherError, fetch_weather, format_weather
 
 
 def test_format_weather_metric() -> None:
@@ -10,3 +13,10 @@ def test_format_weather_metric() -> None:
     assert "25.5°C" in output
     assert "3.2 m/s" in output
 
+
+def test_malformed_api_payload_raises_weather_error() -> None:
+    response = Mock()
+    response.json.return_value = {"name": "Istanbul"}
+    with patch("weather_app.requests.get", return_value=response):
+        with pytest.raises(WeatherError, match="unexpected response"):
+            fetch_weather("Istanbul", "test-key")

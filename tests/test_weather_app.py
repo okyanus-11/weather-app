@@ -4,12 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
-from weather_app import (
-    Weather,
-    WeatherError,
-    fetch_weather,
-    format_weather,
-)
+from weather_app import Weather, WeatherError, fetch_weather, format_weather
 
 
 def test_format_weather_metric() -> None:
@@ -29,48 +24,64 @@ def test_format_weather_metric() -> None:
     assert "3.2 m/s" in output
 
 
-def test_fetch_weather_parses_valid_response() -> None:
-    response = Mock()
-    response.json.return_value = {
+def _valid_response() -> dict:
+    return {
         "name": "Istanbul",
         "sys": {"country": "TR"},
         "weather": [{"description": "clear sky"}],
-        "main": {"temp": 22, "feels_like": 23, "humidity": 48},
-        "wind": {"speed": 3.5},
-        "dt": 1798209000,
+        "main": {"temp": 25.5, "feels_like": 26.0, "humidity": 55},
+        "wind": {"speed": 3.2},
+        "dt": 1787653800,
     }
+
+
+def _fetch_response(payload):
+    response = Mock()
+    response.json.return_value = payload
     with patch("weather_app.requests.get", return_value=response):
-        weather = fetch_weather("Istanbul", "test-key")
+        return fetch_weather("Istanbul", "test-key")
+
+
+def test_fetch_weather_parses_valid_response() -> None:
+    weather = _fetch_response(_valid_response())
     assert weather.city == "Istanbul"
     assert weather.country == "TR"
     assert weather.description == "Clear sky"
-    assert weather.temperature == 22.0
-    assert weather.humidity == 48
-
-
-def test_malformed_api_payload_raises_weather_error() -> None:
-    response = Mock()
-    response.json.return_value = {"name": "Istanbul"}
-    with patch("weather_app.requests.get", return_value=response):
-        with pytest.raises(WeatherError, match="unexpected response"):
-            fetch_weather("Istanbul", "test-key")
+    assert weather.temperature == 25.5
+    assert weather.humidity == 55
 
 
 @pytest.mark.parametrize(
     "payload",
     [
-        {"name": "Istanbul", "sys": {"country": "TR"}, "weather": [], "main": {}, "wind": {}, "dt": 1},
-        {"name": "Istanbul", "sys": {"country": "TR"}, "weather": [{"description": "clear"}],
-         "main": {"temp": "not-a-number", "feels_like": 20, "humidity": 50},
-         "wind": {"speed": 2}, "dt": 1},
+        [],
+        {"name": 1},
+        {**_valid_response(), "sys": []},
+        {**_valid_response(), "sys": {"country": None}},
+        {**_valid_response(), "weather": []},
+        {**_valid_response(), "weather": ["clear sky"]},
+        {**_valid_response(), "main": []},
+        {**_valid_response(), "main": {"temp": "warm", "feels_like": 26, "humidity": 55}},
+        {**_valid_response(), "main": {"temp": 25, "feels_like": True, "humidity": 55}},
+        {**_valid_response(), "main": {"temp": 25, "feels_like": 26, "humidity": 55.0}},
+        {**_valid_response(), "main": {"temp": 25, "feels_like": 26, "humidity": 101}},
+        {**_valid_response(), "wind": {"speed": float("nan")}},
+        {**_valid_response(), "wind": {"speed": -1}},
+        {**_valid_response(), "dt": "1787653800"},
+        {**_valid_response(), "dt": 1e100},
     ],
 )
-def test_incomplete_or_invalid_numeric_payload_raises_weather_error(payload) -> None:
-    response = Mock()
-    response.json.return_value = payload
-    with patch("weather_app.requests.get", return_value=response):
-        with pytest.raises(WeatherError, match="unexpected response"):
-            fetch_weather("Istanbul", "test-key")
+def test_fetch_weather_rejects_malformed_response(payload) -> None:
+    with pytest.raises(WeatherError, match="unexpected response"):
+        _fetch_response(payload)
+
+
+def test_fetch_weather_rejects_missing_field() -> None:
+    payload = _valid_response()
+    del payload["main"]["temp"]
+    with pytest.raises(WeatherError, match="unexpected response"):
+        _fetch_response(payload)
+
 
 def test_invalid_json_response_has_clear_weather_error() -> None:
     response = Mock()
